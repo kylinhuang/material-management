@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.business.mapper.DataStatMapper">
+
+    <select id="statProjectTask" resultType="com.coderman.common.vo.business.StatGoodsVO">
+        SELECT
+        t.*,
+        s.`username` supplierName,
+        s.phone_number  supplierPhone,
+        p.`name` productName,
+        p.`model` productModel
+        FROM
+        (SELECT
+            supplier_id,
+            product_id,
+            date_format(create_time, '%Y-%m' ) dateStr,
+            sum(product_number ) productNum,
+            sum(delivery_number) deliveryNum,
+            sum(warehousing_number) warehousingNum,
+
+            min(review_price) minReviewPrice,
+            max(review_price) maxReviewPrice
+        FROM
+            biz_project_tasks
+        WHERE`status`=4
+        <if test="start != null and end != null">
+            AND create_time BETWEEN #{start} and #{end}
+        </if>
+        <if test="supplierId != null and supplierId != ''">
+            AND supplier_id=#{supplierId}
+        </if>
+        <if test="productId != null and productId != ''">
+            AND product_id=#{productId}
+        </if>
+        GROUP BY dateStr
+        ) t
+        LEFT JOIN
+        biz_product p ON t.product_id = p.id
+        LEFT JOIN
+        tb_user s ON t.supplier_id=s.id
+    </select>
+
+</mapper>
